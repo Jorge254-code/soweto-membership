@@ -1,20 +1,31 @@
-import React, { useState, useEffect } from 'react';
-import { format, startOfWeek, endOfWeek, addWeeks, subWeeks } from 'date-fns';
-import dataService from '../services/dataService';
-import { WeeklyStats, Member, Membership } from '../types';
-import { formatCurrency, formatDate, getStatusColor, getMembershipStatusText, getMemberTypeText, getMemberTypeColor } from '../utils';
-import './Dashboard.css';
+import React, { useState, useEffect } from "react";
+import { format, startOfWeek, endOfWeek, addWeeks, subWeeks } from "date-fns";
+import dataService from "../services/dataService";
+import { WeeklyStats, Member, Membership } from "../types";
+import {
+  formatCurrency,
+  formatDate,
+  getStatusColor,
+  getMembershipStatusText,
+  getMemberTypeText,
+  getMemberTypeColor,
+} from "../utils";
+import "./Dashboard.css";
 
 const Dashboard: React.FC = () => {
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [weeklyStats, setWeeklyStats] = useState<WeeklyStats | null>(null);
-  const [membersWithMemberships, setMembersWithMemberships] = useState<Array<Member & { membership?: Membership }>>([]);
-  const [filter, setFilter] = useState<'all' | 'active' | 'expired' | 'pending'>('all');
+  const [membersWithMemberships, setMembersWithMemberships] = useState<
+    Array<Member & { membership?: Membership }>
+  >([]);
+  const [filter, setFilter] = useState<
+    "all" | "active" | "expired" | "pending"
+  >("all");
 
   const loadDashboardData = React.useCallback(() => {
     const stats = dataService.getWeeklyStats(currentWeek);
     const membersData = dataService.getMembersWithMemberships();
-    
+
     setWeeklyStats(stats);
     setMembersWithMemberships(membersData);
   }, [currentWeek]);
@@ -23,8 +34,10 @@ const Dashboard: React.FC = () => {
     loadDashboardData();
   }, [loadDashboardData]);
 
-  const navigateWeek = (direction: 'prev' | 'next') => {
-    setCurrentWeek(prev => direction === 'prev' ? subWeeks(prev, 1) : addWeeks(prev, 1));
+  const navigateWeek = (direction: "prev" | "next") => {
+    setCurrentWeek((prev) =>
+      direction === "prev" ? subWeeks(prev, 1) : addWeeks(prev, 1)
+    );
   };
 
   const goToCurrentWeek = () => {
@@ -34,20 +47,20 @@ const Dashboard: React.FC = () => {
   const getWeekRange = () => {
     const start = startOfWeek(currentWeek, { weekStartsOn: 1 });
     const end = endOfWeek(currentWeek, { weekStartsOn: 1 });
-    return `${format(start, 'MMM dd')} - ${format(end, 'MMM dd, yyyy')}`;
+    return `${format(start, "MMM dd")} - ${format(end, "MMM dd, yyyy")}`;
   };
 
-  const filteredMembers = membersWithMemberships.filter(member => {
-    if (filter === 'all') return true;
-    if (!member.membership) return filter === 'pending';
+  const filteredMembers = membersWithMemberships.filter((member) => {
+    if (filter === "all") return true;
+    if (!member.membership) return filter === "pending";
     return member.membership.status === filter;
   });
 
-  const StatCard: React.FC<{ title: string; value: number | string; color?: string }> = ({ 
-    title, 
-    value, 
-    color = '#3b82f6' 
-  }) => (
+  const StatCard: React.FC<{
+    title: string;
+    value: number | string;
+    color?: string;
+  }> = ({ title, value, color = "#3b82f6" }) => (
     <div className="stat-card">
       <div className="stat-header">
         <h3>{title}</h3>
@@ -66,9 +79,12 @@ const Dashboard: React.FC = () => {
     <div className="dashboard">
       <div className="dashboard-header">
         <h1>Membership Dashboard</h1>
-        
+
         <div className="week-navigation">
-          <button onClick={() => navigateWeek('prev')} className="btn btn-secondary">
+          <button
+            onClick={() => navigateWeek("prev")}
+            className="btn btn-secondary"
+          >
             ← Previous Week
           </button>
           <div className="current-week">
@@ -77,59 +93,59 @@ const Dashboard: React.FC = () => {
               Go to Current Week
             </button>
           </div>
-          <button onClick={() => navigateWeek('next')} className="btn btn-secondary">
+          <button
+            onClick={() => navigateWeek("next")}
+            className="btn btn-secondary"
+          >
             Next Week →
           </button>
         </div>
       </div>
 
       <div className="stats-grid">
-        <StatCard 
-          title="Total Members" 
-          value={weeklyStats.totalMembers} 
-        />
-        <StatCard 
-          title="Active Members" 
+        <StatCard title="Total Members" value={weeklyStats.totalMembers} />
+        <StatCard
+          title="Active Members"
           value={weeklyStats.activeMembers}
           color="#10b981"
         />
-        <StatCard 
-          title="Inactive Members" 
+        <StatCard
+          title="Inactive Members"
           value={weeklyStats.inactiveMembers}
           color="#6b7280"
         />
-        <StatCard 
-          title="Active Memberships" 
+        <StatCard
+          title="Active Memberships"
           value={weeklyStats.activeMemberships}
           color="#10b981"
         />
-        <StatCard 
-          title="Expired Memberships" 
+        <StatCard
+          title="Expired Memberships"
           value={weeklyStats.expiredMemberships}
           color="#ef4444"
         />
-        <StatCard 
-          title="Pending Renewals" 
+        <StatCard
+          title="Pending Renewals"
           value={weeklyStats.pendingRenewals}
           color="#f59e0b"
         />
-        <StatCard 
-          title="Weekly Revenue" 
+        <StatCard
+          title="Weekly Revenue"
           value={formatCurrency(weeklyStats.totalRevenue)}
           color="#10b981"
         />
-        <StatCard 
-          title="New Members" 
+        <StatCard
+          title="New Members"
           value={weeklyStats.newMembers}
           color="#8b5cf6"
         />
-        <StatCard 
-          title="Fulltime Members" 
+        <StatCard
+          title="Fulltime Members"
           value={weeklyStats.fulltimeMembers}
           color="#0ea5e9"
         />
-        <StatCard 
-          title="One Time Members" 
+        <StatCard
+          title="One Time Members"
           value={weeklyStats.onetimeMembers}
           color="#f97316"
         />
@@ -140,8 +156,8 @@ const Dashboard: React.FC = () => {
           <h2>Members Overview</h2>
           <div className="filter-controls">
             <label>Filter by membership:</label>
-            <select 
-              value={filter} 
+            <select
+              value={filter}
               onChange={(e) => setFilter(e.target.value as any)}
               className="filter-select"
             >
@@ -160,7 +176,6 @@ const Dashboard: React.FC = () => {
                 <th>Name</th>
                 <th>Member Status</th>
                 <th>Member Type</th>
-                <th>Email</th>
                 <th>Phone</th>
                 <th>Join Date</th>
                 <th>Membership Status</th>
@@ -169,56 +184,62 @@ const Dashboard: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredMembers.map(member => (
-                <tr key={member.id} className={!member.isActive ? 'inactive-member' : ''}>
+              {filteredMembers.map((member) => (
+                <tr
+                  key={member.id}
+                  className={!member.isActive ? "inactive-member" : ""}
+                >
                   <td>
                     <div className="member-name">
                       {member.firstName} {member.lastName}
                     </div>
                   </td>
                   <td>
-                    <span 
+                    <span
                       className="status-badge"
-                      style={{ 
-                        backgroundColor: member.isActive ? '#10b981' : '#6b7280',
-                        color: 'white'
+                      style={{
+                        backgroundColor: member.isActive
+                          ? "#10b981"
+                          : "#6b7280",
+                        color: "white",
                       }}
                     >
-                      {member.isActive ? 'Active' : 'Inactive'}
+                      {member.isActive ? "Active" : "Inactive"}
                     </span>
                   </td>
                   <td>
-                    <span 
+                    <span
                       className="type-badge"
-                      style={{ 
+                      style={{
                         backgroundColor: getMemberTypeColor(member.memberType),
-                        color: 'white'
+                        color: "white",
                       }}
                     >
                       {getMemberTypeText(member.memberType)}
                     </span>
                   </td>
-                  <td>{member.email}</td>
                   <td>{member.phone}</td>
                   <td>{formatDate(member.joinDate)}</td>
                   <td>
                     <div className="status-container">
                       {member.membership ? (
-                        <span 
+                        <span
                           className="status-badge"
-                          style={{ 
-                            backgroundColor: getStatusColor(member.membership.status),
-                            color: 'white'
+                          style={{
+                            backgroundColor: getStatusColor(
+                              member.membership.status
+                            ),
+                            color: "white",
                           }}
                         >
                           {getMembershipStatusText(member.membership.status)}
                         </span>
                       ) : (
-                        <span 
+                        <span
                           className="status-badge"
-                          style={{ 
-                            backgroundColor: getStatusColor('pending'),
-                            color: 'white'
+                          style={{
+                            backgroundColor: getStatusColor("pending"),
+                            color: "white",
                           }}
                         >
                           No Membership
@@ -227,16 +248,14 @@ const Dashboard: React.FC = () => {
                     </div>
                   </td>
                   <td>
-                    {member.membership 
+                    {member.membership
                       ? formatCurrency(member.membership.monthlyAmount)
-                      : '-'
-                    }
+                      : "-"}
                   </td>
                   <td>
-                    {member.membership 
+                    {member.membership
                       ? formatDate(member.membership.renewalDate)
-                      : '-'
-                    }
+                      : "-"}
                   </td>
                 </tr>
               ))}

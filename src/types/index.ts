@@ -2,7 +2,7 @@ export interface Member {
   id: string;
   firstName: string;
   lastName: string;
-  email: string;
+  email?: string;
   phone: string;
   dateOfBirth: string;
   address: string;
@@ -13,7 +13,7 @@ export interface Member {
   };
   joinDate: string;
   isActive: boolean;
-  memberType: 'onetime' | 'fulltime';
+  memberType: "onetime" | "fulltime";
 }
 
 export interface Membership {
@@ -22,7 +22,7 @@ export interface Membership {
   startDate: string;
   endDate: string;
   monthlyAmount: number;
-  status: 'active' | 'expired' | 'pending';
+  status: "active" | "expired" | "pending";
   renewalDate: string;
 }
 
@@ -32,8 +32,8 @@ export interface Payment {
   memberId: string;
   amount: number;
   paymentDate: string;
-  paymentMethod: 'cash' | 'card' | 'bank_transfer' | 'check';
-  status: 'completed' | 'pending' | 'failed';
+  paymentMethod: "cash" | "card" | "bank_transfer" | "check";
+  status: "completed" | "pending" | "failed";
   notes?: string;
 }
 
@@ -53,18 +53,24 @@ export interface WeeklyStats {
 export interface MemberFormData {
   firstName: string;
   lastName: string;
-  email: string;
   phone: string;
   dateOfBirth: string;
   address: string;
   emergencyContactName: string;
   emergencyContactPhone: string;
   emergencyContactRelationship: string;
-  memberType: 'onetime' | 'fulltime';
+  memberType: "onetime" | "fulltime";
 }
+
+export const formatCurrency = (amount: number): string => {
+  return new Intl.NumberFormat("en-KE", {
+    style: "currency",
+    currency: "KES",
+  }).format(amount);
+};
 
 export interface PaymentFormData {
   amount: number;
-  paymentMethod: 'cash' | 'card' | 'bank_transfer' | 'check';
+  paymentMethod: "cash" | "card" | "bank_transfer" | "check";
   notes?: string;
 }

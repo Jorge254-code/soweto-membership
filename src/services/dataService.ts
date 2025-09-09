@@ -1,12 +1,26 @@
-import { v4 as uuidv4 } from 'uuid';
-import { format, addMonths, startOfWeek, endOfWeek, isWithinInterval, parseISO } from 'date-fns';
-import { Member, Membership, Payment, MemberFormData, PaymentFormData, WeeklyStats } from '../types';
+import { v4 as uuidv4 } from "uuid";
+import {
+  format,
+  addMonths,
+  startOfWeek,
+  endOfWeek,
+  isWithinInterval,
+  parseISO,
+} from "date-fns";
+import {
+  Member,
+  Membership,
+  Payment,
+  MemberFormData,
+  PaymentFormData,
+  WeeklyStats,
+} from "../types";
 
 class DataService {
   private STORAGE_KEYS = {
-    MEMBERS: 'church_members',
-    MEMBERSHIPS: 'church_memberships',
-    PAYMENTS: 'church_payments'
+    MEMBERS: "church_members",
+    MEMBERSHIPS: "church_memberships",
+    PAYMENTS: "church_payments",
   };
 
   // Members
@@ -17,7 +31,7 @@ class DataService {
 
   getMember(id: string): Member | undefined {
     const members = this.getMembers();
-    return members.find(member => member.id === id);
+    return members.find((member) => member.id === id);
   }
 
   addMember(memberData: MemberFormData): Member {
@@ -26,18 +40,18 @@ class DataService {
       id: uuidv4(),
       firstName: memberData.firstName,
       lastName: memberData.lastName,
-      email: memberData.email,
+      email: "",
       phone: memberData.phone,
       dateOfBirth: memberData.dateOfBirth,
       address: memberData.address,
       emergencyContact: {
         name: memberData.emergencyContactName,
         phone: memberData.emergencyContactPhone,
-        relationship: memberData.emergencyContactRelationship
+        relationship: memberData.emergencyContactRelationship,
       },
-      joinDate: format(new Date(), 'yyyy-MM-dd'),
+      joinDate: format(new Date(), "yyyy-MM-dd"),
       isActive: true,
-      memberType: memberData.memberType
+      memberType: memberData.memberType,
     };
 
     members.push(newMember);
@@ -47,8 +61,8 @@ class DataService {
 
   updateMember(id: string, memberData: Partial<Member>): Member | null {
     const members = this.getMembers();
-    const index = members.findIndex(member => member.id === id);
-    
+    const index = members.findIndex((member) => member.id === id);
+
     if (index === -1) return null;
 
     members[index] = { ...members[index], ...memberData };
@@ -66,8 +80,8 @@ class DataService {
 
   deleteMember(id: string): boolean {
     const members = this.getMembers();
-    const memberIndex = members.findIndex(member => member.id === id);
-    
+    const memberIndex = members.findIndex((member) => member.id === id);
+
     if (memberIndex === -1) return false;
 
     // Remove the member
@@ -83,14 +97,24 @@ class DataService {
 
   private deleteMembershipsByMemberId(memberId: string): void {
     const memberships = this.getMemberships();
-    const filteredMemberships = memberships.filter(membership => membership.memberId !== memberId);
-    localStorage.setItem(this.STORAGE_KEYS.MEMBERSHIPS, JSON.stringify(filteredMemberships));
+    const filteredMemberships = memberships.filter(
+      (membership) => membership.memberId !== memberId
+    );
+    localStorage.setItem(
+      this.STORAGE_KEYS.MEMBERSHIPS,
+      JSON.stringify(filteredMemberships)
+    );
   }
 
   private deletePaymentsByMemberId(memberId: string): void {
     const payments = this.getPayments();
-    const filteredPayments = payments.filter(payment => payment.memberId !== memberId);
-    localStorage.setItem(this.STORAGE_KEYS.PAYMENTS, JSON.stringify(filteredPayments));
+    const filteredPayments = payments.filter(
+      (payment) => payment.memberId !== memberId
+    );
+    localStorage.setItem(
+      this.STORAGE_KEYS.PAYMENTS,
+      JSON.stringify(filteredPayments)
+    );
   }
 
   // Memberships
@@ -101,62 +125,73 @@ class DataService {
 
   getMembershipByMemberId(memberId: string): Membership | undefined {
     const memberships = this.getMemberships();
-    return memberships.find(membership => membership.memberId === memberId);
+    return memberships.find((membership) => membership.memberId === memberId);
   }
 
   createMembership(memberId: string, monthlyAmount: number): Membership {
     const memberships = this.getMemberships();
     const startDate = new Date();
     const endDate = addMonths(startDate, 1);
-    
+
     const newMembership: Membership = {
       id: uuidv4(),
       memberId,
-      startDate: format(startDate, 'yyyy-MM-dd'),
-      endDate: format(endDate, 'yyyy-MM-dd'),
+      startDate: format(startDate, "yyyy-MM-dd"),
+      endDate: format(endDate, "yyyy-MM-dd"),
       monthlyAmount,
-      status: 'active',
-      renewalDate: format(endDate, 'yyyy-MM-dd')
+      status: "active",
+      renewalDate: format(endDate, "yyyy-MM-dd"),
     };
 
     memberships.push(newMembership);
-    localStorage.setItem(this.STORAGE_KEYS.MEMBERSHIPS, JSON.stringify(memberships));
+    localStorage.setItem(
+      this.STORAGE_KEYS.MEMBERSHIPS,
+      JSON.stringify(memberships)
+    );
     return newMembership;
   }
 
   renewMembership(membershipId: string): Membership | null {
     const memberships = this.getMemberships();
-    const index = memberships.findIndex(membership => membership.id === membershipId);
-    
+    const index = memberships.findIndex(
+      (membership) => membership.id === membershipId
+    );
+
     if (index === -1) return null;
 
     const currentMembership = memberships[index];
     const newEndDate = addMonths(new Date(), 1);
-    
+
     memberships[index] = {
       ...currentMembership,
-      endDate: format(newEndDate, 'yyyy-MM-dd'),
-      renewalDate: format(newEndDate, 'yyyy-MM-dd'),
-      status: 'active'
+      endDate: format(newEndDate, "yyyy-MM-dd"),
+      renewalDate: format(newEndDate, "yyyy-MM-dd"),
+      status: "active",
     };
 
-    localStorage.setItem(this.STORAGE_KEYS.MEMBERSHIPS, JSON.stringify(memberships));
+    localStorage.setItem(
+      this.STORAGE_KEYS.MEMBERSHIPS,
+      JSON.stringify(memberships)
+    );
     return memberships[index];
   }
 
   updateMembershipStatus(): void {
     const memberships = this.getMemberships();
     const today = new Date();
-    
-    const updatedMemberships = memberships.map(membership => {
+
+    const updatedMemberships = memberships.map((membership) => {
       const endDate = parseISO(membership.endDate);
-      if (endDate < today && membership.status === 'active') {
-        return { ...membership, status: 'expired' as const };
+      if (endDate < today && membership.status === "active") {
+        return { ...membership, status: "expired" as const };
       }
       return membership;
     });
 
-    localStorage.setItem(this.STORAGE_KEYS.MEMBERSHIPS, JSON.stringify(updatedMemberships));
+    localStorage.setItem(
+      this.STORAGE_KEYS.MEMBERSHIPS,
+      JSON.stringify(updatedMemberships)
+    );
   }
 
   // Payments
@@ -165,17 +200,21 @@ class DataService {
     return stored ? JSON.parse(stored) : [];
   }
 
-  addPayment(membershipId: string, memberId: string, paymentData: PaymentFormData): Payment {
+  addPayment(
+    membershipId: string,
+    memberId: string,
+    paymentData: PaymentFormData
+  ): Payment {
     const payments = this.getPayments();
     const newPayment: Payment = {
       id: uuidv4(),
       membershipId,
       memberId,
       amount: paymentData.amount,
-      paymentDate: format(new Date(), 'yyyy-MM-dd'),
+      paymentDate: format(new Date(), "yyyy-MM-dd"),
       paymentMethod: paymentData.paymentMethod,
-      status: 'completed',
-      notes: paymentData.notes
+      status: "completed",
+      notes: paymentData.notes,
     };
 
     payments.push(newPayment);
@@ -189,7 +228,7 @@ class DataService {
 
   getPaymentsByMemberId(memberId: string): Payment[] {
     const payments = this.getPayments();
-    return payments.filter(payment => payment.memberId === memberId);
+    return payments.filter((payment) => payment.memberId === memberId);
   }
 
   // Weekly Statistics
@@ -205,38 +244,60 @@ class DataService {
     // Update membership statuses first
     this.updateMembershipStatus();
 
-    const activeMemberships = memberships.filter(m => m.status === 'active').length;
-    const expiredMemberships = memberships.filter(m => m.status === 'expired').length;
-    
+    const activeMemberships = memberships.filter(
+      (m) => m.status === "active"
+    ).length;
+    const expiredMemberships = memberships.filter(
+      (m) => m.status === "expired"
+    ).length;
+
     // Members who need renewal this week
-    const pendingRenewals = memberships.filter(membership => {
+    const pendingRenewals = memberships.filter((membership) => {
       const renewalDate = parseISO(membership.renewalDate);
-      return isWithinInterval(renewalDate, { start: weekStartDate, end: weekEndDate }) &&
-             membership.status === 'active';
+      return (
+        isWithinInterval(renewalDate, {
+          start: weekStartDate,
+          end: weekEndDate,
+        }) && membership.status === "active"
+      );
     }).length;
 
     // New members this week
-    const newMembers = members.filter(member => {
+    const newMembers = members.filter((member) => {
       const joinDate = parseISO(member.joinDate);
-      return isWithinInterval(joinDate, { start: weekStartDate, end: weekEndDate });
+      return isWithinInterval(joinDate, {
+        start: weekStartDate,
+        end: weekEndDate,
+      });
     }).length;
 
     // Revenue this week
-    const weeklyPayments = payments.filter(payment => {
+    const weeklyPayments = payments.filter((payment) => {
       const paymentDate = parseISO(payment.paymentDate);
-      return isWithinInterval(paymentDate, { start: weekStartDate, end: weekEndDate }) &&
-             payment.status === 'completed';
+      return (
+        isWithinInterval(paymentDate, {
+          start: weekStartDate,
+          end: weekEndDate,
+        }) && payment.status === "completed"
+      );
     });
 
-    const totalRevenue = weeklyPayments.reduce((sum, payment) => sum + payment.amount, 0);
+    const totalRevenue = weeklyPayments.reduce(
+      (sum, payment) => sum + payment.amount,
+      0
+    );
 
     // Member type counts
-    const fulltimeMembers = members.filter(member => member.memberType === 'fulltime').length;
-    const onetimeMembers = members.filter(member => member.memberType === 'onetime').length;
-    
+    const fulltimeMembers = members.filter(
+      (member) => member.memberType === "fulltime"
+    ).length;
+    const onetimeMembers = members.filter(
+      (member) => member.memberType === "onetime"
+    ).length;
+
     // Active/inactive member counts
-    const activeMembers = members.filter(member => member.isActive).length;
-    const inactiveMembers = members.filter(member => !member.isActive).length;
+    const activeMembers = members.filter((member) => member.isActive).length;
+    const inactiveMembers = members.filter((member) => !member.isActive).length;
 
     return {
       totalMembers: members.length,
@@ -248,7 +309,7 @@ class DataService {
       totalRevenue,
       newMembers,
       fulltimeMembers,
-      onetimeMembers
+      onetimeMembers,
     };
   }
 
@@ -256,12 +317,12 @@ class DataService {
   getMembersWithMemberships() {
     const members = this.getMembers();
     const memberships = this.getMemberships();
-    
-    return members.map(member => {
-      const membership = memberships.find(m => m.memberId === member.id);
+
+    return members.map((member) => {
+      const membership = memberships.find((m) => m.memberId === member.id);
       return {
         ...member,
-        membership
+        membership,
       };
     });
   }
@@ -271,34 +332,32 @@ class DataService {
     if (this.getMembers().length === 0) {
       const sampleMembers: MemberFormData[] = [
         {
-          firstName: 'John',
-          lastName: 'Doe',
-          email: 'john.doe@email.com',
-          phone: '+1234567890',
-          dateOfBirth: '1980-05-15',
-          address: '123 Church St, City, State 12345',
-          emergencyContactName: 'Jane Doe',
-          emergencyContactPhone: '+1234567891',
-          emergencyContactRelationship: 'Spouse',
-          memberType: 'fulltime'
+          firstName: "John",
+          lastName: "Doe",
+          phone: "+1234567890",
+          dateOfBirth: "1980-05-15",
+          address: "123 Church St, City, State 12345",
+          emergencyContactName: "Jane Doe",
+          emergencyContactPhone: "+1234567891",
+          emergencyContactRelationship: "Spouse",
+          memberType: "fulltime",
         },
         {
-          firstName: 'Mary',
-          lastName: 'Smith',
-          email: 'mary.smith@email.com',
-          phone: '+1234567892',
-          dateOfBirth: '1975-08-22',
-          address: '456 Faith Ave, City, State 12345',
-          emergencyContactName: 'Bob Smith',
-          emergencyContactPhone: '+1234567893',
-          emergencyContactRelationship: 'Husband',
-          memberType: 'onetime'
-        }
+          firstName: "Mary",
+          lastName: "Smith",
+          phone: "+1234567892",
+          dateOfBirth: "1975-08-22",
+          address: "456 Faith Ave, City, State 12345",
+          emergencyContactName: "Bob Smith",
+          emergencyContactPhone: "+1234567893",
+          emergencyContactRelationship: "Husband",
+          memberType: "onetime",
+        },
       ];
 
-      sampleMembers.forEach(memberData => {
+      sampleMembers.forEach((memberData) => {
         const member = this.addMember(memberData);
-        this.createMembership(member.id, 50); // $50 monthly membership
+        this.createMembership(member.id, 50); // KES 50 monthly membership
       });
     }
   }
